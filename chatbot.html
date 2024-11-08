@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Stylist Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .chatbox {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .messages {
+            height: 400px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #d1e7dd;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #f8d7da;
+        }
+        .input-box {
+            display: flex;
+        }
+        .input-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .input-box button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .input-box button:hover {
+            background-color: #0056b3;
+        }
+        .image-response img {
+            max-width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chatbox">
+    <h2>Fashion Stylist Chatbot</h2>
+    <div class="messages" id="chatbox-messages"></div>
+    <div class="input-box">
+        <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    // Function to add messages to the chatbox
+    function addMessage(content, className) {
+        const messagesDiv = document.getElementById('chatbox-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ' + className;
+        messageDiv.innerHTML = content;
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Function to send a message to the backend
+    function sendMessage() {
+        const userInput = document.getElementById('user-input').value;
+        if (userInput.trim() === '') return;
+
+        // Display user's message
+        addMessage(userInput, 'user-message');
+
+        // Send the user's message to the backend
+        fetch('http://localhost:5000/chatbot', {  // Make sure the port matches your Flask server
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: userInput })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Display the chatbot's response
+            addMessage(data.text, 'bot-message');
+            
+            // If there's an image in the response, display it
+            if (data.image_url) {
+                addMessage(`<div class="image-response"><img src="${data.image_url}" alt="Suggested Apparel"></div>`, 'bot-message');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            addMessage('Error connecting to the chatbot server.', 'bot-message');
+        });
+
+        // Clear the input field
+        document.getElementById('user-input').value = '';
+    }
+</script>
+
+</body>
+</html>
